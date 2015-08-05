@@ -102,7 +102,6 @@ public class MyDatabaseAdapter {
 				MySQLiteOpenHelper.NAME + " = '" + name + "'", null, null, null, null);
 		StringBuffer buffer = new StringBuffer();
 		while(cursor.moveToNext()){
-			int index1 = cursor.getColumnIndex(MySQLiteOpenHelper.NAME);
 			int index2 = cursor.getColumnIndex(MySQLiteOpenHelper.SHELF_1);
 			int index3 = cursor.getColumnIndex(MySQLiteOpenHelper.SHELF_2);
 			int index4 = cursor.getColumnIndex(MySQLiteOpenHelper.SHELF_3);
@@ -202,11 +201,9 @@ public class MyDatabaseAdapter {
 				SHELF_3 + " VARCHAR(255), "+ SHELF_4+ " VARCHAR(255), "+SHELF_5 +" ) ";
 		private static final String DROP_TABLE1 = "DROP TABLE IF EXISTS " + TABLE_NAME_PRODUCTS;
 		private static final String DROP_TABLE2 = "DROP TABLE IF EXISTS " + TABLE_NAME_TMDS;
-		private Context context;
 		MySQLiteOpenHelper(Context context)
 		{
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
-			this.context = context;
 			Log.d("Mine", "Constructor was called");
 		}
 		@Override

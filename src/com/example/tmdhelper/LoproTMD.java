@@ -31,20 +31,15 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		setContentView(R.layout.lopro_tmd);
 		resources = getButtonResources();
 		tmdPrefs = getMySharedPreferences();
-		myDatabaseAdapter = getDatabaseAdapter();
 		brands = getIntent().getStringArrayListExtra("brands");
 		initializePlanogram();
-		super.setBrandsArray(brands);
+		setBrandsArray(brands);
 		
-		if(tmdPrefs.contains("loproTMD"))
-		{
-			loproTMD = tmdPrefs.getInt("loproTMD", 0);
-		}
-		tmdTotal = loproTMD+fullTMD;
+		instantiateInstanceVariables();
+		
 		if(tmdTotal == 1)
 		{
-			Button b = (Button) findViewById(R.id.next_button);
-			b.setText("Finish");
+			setButtonToFinish();
 		}
 		resources = getButtonResources();
 		for (int i=0; i <resources.length; i++)
@@ -189,7 +184,7 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		}
 		else if(id == R.id.action_restart)
 		{
-			myDatabaseAdapter.deleteTMDdatabase();
+			wipeDatabase();
 			AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
 			builder1.setMessage(getResources().getString(R.string.restart_alert_message));
 			builder1.setCancelable(true);
@@ -216,6 +211,14 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	public void instantiateInstanceVariables()
+	{
+		if(tmdPrefs.contains("loproTMD"))
+		{
+			loproTMD = tmdPrefs.getInt("loproTMD", 0);
+		}
+		tmdTotal = loproTMD+fullTMD;
 	}
 	public void setHeading()
 	{

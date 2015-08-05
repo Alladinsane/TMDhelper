@@ -34,17 +34,17 @@ abstract class TMDactivity extends MainActivity implements OnClickListener{
 		if (requestCode == MAKE_PRODUCT_SELECTION) {
 			if(resultCode == RESULT_OK){
 				String result=data.getStringExtra("result");
+				
 				processResult(result);
 			}
 			if (resultCode == RESULT_CANCELED) {
-				//Write your code if there's no result
 			}
 		}
 		else if (requestCode == MULTIPLE_TMDS_PICKER)
 		{
-			Log.d("Mine", "RequestCode properly identified");
 			if(resultCode == RESULT_OK){
 				int multiple = data.getIntExtra("result", 1);
+				
 				CheckBox cb = (CheckBox) findViewById(R.id.checkbox);
 				if(cb.isChecked()){
 					cb.toggle();}
@@ -75,10 +75,9 @@ abstract class TMDactivity extends MainActivity implements OnClickListener{
 	{
 		String brandName = pd.nextToken();
 		int thisColorID = getColorID(pd.nextToken());
-		Integer.parseInt(pd.nextToken());
-		Integer.parseInt(pd.nextToken());
+		pd.nextToken();
+		pd.nextToken();
 
-		//change shelf Button text to item name, and background color to item color
 		b.setText(brandName);
 		b.setBackgroundColor(thisColorID);
 
@@ -195,6 +194,13 @@ abstract class TMDactivity extends MainActivity implements OnClickListener{
 			b.setBackgroundColor(getResources().getColor(R.color.white));
 		}
 
+	}public void setOnClickListenersForButtons()
+	{
+		for (int i=0; i <resources.length; i++)
+		{
+			Button b = (Button)findViewById(resources[i]);
+			b.setOnClickListener(this);
+		}
 	}
 	public void launchEmptyAlertDialog()
 	{
@@ -256,11 +262,11 @@ abstract class TMDactivity extends MainActivity implements OnClickListener{
 	{
 		this.brands = brands;
 	}
-	public void setButtonResources(int[] resources)
+	public void setButtonToFinish()
 	{
-		this.resources = resources;
+		Button b = (Button) findViewById(R.id.next_button);
+		b.setText("Finish");
 	}
-	
 	public int getColorID(String color)
 	{
 		int tempID = getResources().getIdentifier(color, color, getPackageName());

@@ -1,10 +1,7 @@
 package com.example.tmdhelper;
 
-import java.util.StringTokenizer;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
@@ -28,7 +25,6 @@ public class Splash extends MainActivity {
 		findViews();
 		
 		loadSharedPreferences();
-		wipeDatabase();
 		
 		loadAnimations();
 		
@@ -36,23 +32,7 @@ public class Splash extends MainActivity {
 
 		startNextActivityWhenAnimationCompletes();
 	}
-	public void loadAnimations()
-	{
-		fade1 = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-		fade2 = AnimationUtils.loadAnimation(this, R.anim.fade_in2);
-	}
-	public void runAnimations()
-	{
-		try{
-			logo.startAnimation(fade1);//fades in our logo
-			title.startAnimation(fade2);//title and version fade in together
-			version.startAnimation(fade2);
-			}
-			catch(NullPointerException e)
-			{
-				System.out.println("No animations were loaded");
-			}
-	}
+	
 	public void startNextActivityWhenAnimationCompletes()
 	{
 		fade2.setAnimationListener(new AnimationListener(){
@@ -121,4 +101,28 @@ public class Splash extends MainActivity {
 		title = (TextView) findViewById(R.id.title);
 		version = (TextView) findViewById(R.id.version);
 	}
+	public void loadAnimations()
+	{
+		fade1 = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+		fade2 = AnimationUtils.loadAnimation(this, R.anim.fade_in2);
+	}
+	public void runAnimations()
+	{
+		new Thread(new logoAnimator()).start();
+	}
+		class logoAnimator implements Runnable
+		{
+			public void run()
+			{
+				try{
+					logo.startAnimation(fade1);//fades in our logo
+					title.startAnimation(fade2);//title and version fade in together
+					version.startAnimation(fade2);
+					}
+					catch(NullPointerException e)
+					{
+						System.out.println("No animations were loaded");
+					}
+			}
+		}
 }

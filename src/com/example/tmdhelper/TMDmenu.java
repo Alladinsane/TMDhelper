@@ -1,12 +1,7 @@
 package com.example.tmdhelper;
 
-
-
-import java.util.StringTokenizer;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,26 +14,33 @@ public class TMDmenu extends MainActivity {
 	
 	MyDatabaseAdapter myDatabaseAdapter;
 	
-	
+
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.menu);
-		android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-		actionBar.hide();
-		myDatabaseAdapter = new MyDatabaseAdapter(this);
-		myDatabaseAdapter.deleteTMDdatabase();
-		
+
+		hideActionBar();
+		myDatabaseAdapter = getDatabaseAdapter();
+		wipeDatabase();
+
 		ListView menuList = (ListView) findViewById(R.id.menu_list);
 
+		setupMenu(menuList);
+		listenForAndHandleMenuClicks(menuList);
+	}
+
+	public void setupMenu(ListView menuList)
+	{
 		String[] items = { getResources().getString(R.string.menu_item_start)};
-				//, getResources().getString(R.string.menu_item_edit)};
-		//all menu options are retrieved from string resources and stored into 
-		//string array, which is then packed into our listview
+		//, getResources().getString(R.string.menu_item_edit)};
 
 		ArrayAdapter<String> adapt = new ArrayAdapter<String>(this, 
 				R.layout.menu_item, items);
 		menuList.setAdapter(adapt);
 
+	}
+	public void listenForAndHandleMenuClicks(ListView menuList)
+	{
 		menuList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
 			public void onItemClick(AdapterView<?> parent, View itemClicked,
 					int position, long id) {
@@ -58,11 +60,7 @@ public class TMDmenu extends MainActivity {
 				}
 			}
 		});
-
 	}
-
-
-
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -84,5 +82,5 @@ public class TMDmenu extends MainActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 }

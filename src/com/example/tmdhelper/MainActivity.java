@@ -51,6 +51,16 @@ public class MainActivity extends ActionBarActivity {
 	{
 		myDatabaseAdapter.deleteTMDdatabase();
 	}
+	public String getProductData(String itemName)
+	{
+		String productData = myDatabaseAdapter.getProductData(itemName);
+		return productData;
+	}
+	public ArrayList<String> getAllItems()
+	{
+		ArrayList<String> masterList = myDatabaseAdapter.getAllItems();
+		return masterList;
+	}
 	public void resetCounter()
 	{
 		SharedPreferences.Editor prefEditor = tmdPrefs.edit();
@@ -78,16 +88,6 @@ public class MainActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	public void onAnimationStart(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onAnimationRepeat(Animation animation) {
-		// TODO Auto-generated method stub
-		
 	}
 	public void alertDialogForRestart()
 	{
