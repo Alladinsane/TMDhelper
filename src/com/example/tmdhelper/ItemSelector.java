@@ -2,15 +2,12 @@ package com.example.tmdhelper;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -18,21 +15,42 @@ import android.widget.TextView;
 
 public class ItemSelector extends MainActivity {
 	
-	ArrayAdapter<String> adapt;
-	MyDatabaseAdapter myDatabaseAdapter;
+	ArrayList<String> itemArray;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.item_selector);
-		ActionBar actionBar = getSupportActionBar();
-		actionBar.hide();
-		ArrayList<String> itemArray = loadItemArray();
-		Log.d("Mine", "itemArray = " + itemArray);
-		ListView selectItem = (ListView)findViewById(R.id.item_list_view);
+		hideActionBar();
 		
-
-		adapt = new ArrayAdapter<String>(
+		loadItemArray();
+		
+		listenForAndHandleClickEvents();
+	}
+	
+	public void listenForAndHandleClickEvents()
+	{
+		ListView selectItem = (ListView)findViewById(R.id.item_list_view);
+		setupListView(selectItem);
+		
+		selectItem.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+			//the user has selected an item from the ListView
+			public void onItemClick(AdapterView<?> parent, View itemClicked,
+					int position, long id) {
+				TextView textview = (TextView) itemClicked;
+				
+				String itemSelected = textview.getText().toString();
+				
+				Intent returnIntent = new Intent();
+				returnIntent.putExtra("result", itemSelected);
+				setResult(RESULT_OK, returnIntent);
+				finish();
+			}
+			});
+	}
+	public void setupListView(ListView selectItem)
+	{
+		ArrayAdapter<String> adapt = new ArrayAdapter<String>(
                 this, 
                 android.R.layout.simple_list_item_1,
                 itemArray );
@@ -42,47 +60,38 @@ public class ItemSelector extends MainActivity {
 		selectItem.setChoiceMode(ListView.CHOICE_MODE_SINGLE);//allows user to make multiple selections
 		registerForContextMenu(selectItem);
 		selectItem.setAdapter(adapt);
-		
-		selectItem.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-			//the user has selected an item from the ListView
-			public void onItemClick(AdapterView<?> parent, View itemClicked,
-					int position, long id) {
-				TextView textview = (TextView) itemClicked;
-				String strText = textview.getText().toString();
-				
-				Intent returnIntent = new Intent();
-				returnIntent.putExtra("result", strText);
-				setResult(RESULT_OK, returnIntent);
-				finish();
-			}
-			});
 	}
-	public ArrayList<String> loadItemArray()
+	public void loadItemArray()
 	{
 		//generates a ListView from the array of brands selected for use in this build
 		ArrayList<String> brands = getIntent().getStringArrayListExtra("brands");
 		Log.d("Mine", "ItemSelector brands = " + brands);
-		ArrayList<String> itemArray = new ArrayList<String>();
+		itemArray = new ArrayList<String>();
 		
 		for(int i=0; i<brands.size(); i++)
 		{
-			String myBrand = brands.get(i).toString();
-			Log.d("Mine", "myBrand = " +myBrand);
-			int id = this.getResources().getIdentifier(myBrand, "array", this.getPackageName());
-			String[] tempArray = getResources().getStringArray(id);
-			Log.d("Mine", "tempArray = " + tempArray);
-			for(int j=0; j<tempArray.length; j++)
-			{
-				String temp = tempArray[j].toString();
-				Log.d("Mine", "temp = " + temp);
-				StringTokenizer st = new StringTokenizer(temp);
-				
-				String item = st.nextToken();
-				itemArray.add(item);
-			}
+			String selectedBrand = brands.get(i).toString();
+			addThisBrandToArray(selectedBrand);
 		}
+		addEmptyBrandToArray();
+	}
+	public void addThisBrandToArray(String selectedBrand)
+	{
+		int id = this.getResources().getIdentifier(selectedBrand, "array", this.getPackageName());
+		String[] tempArray = getResources().getStringArray(id);
+		for(int j=0; j<tempArray.length; j++)
+		{
+			String temp = tempArray[j].toString();
+			Log.d("Mine", "temp = " + temp);
+			StringTokenizer st = new StringTokenizer(temp);
+			
+			String item = st.nextToken();
+			itemArray.add(item);
+		}
+	}
+	public void addEmptyBrandToArray()
+	{
 		itemArray.add("empty");
-		return itemArray;
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,20 +108,10 @@ public class ItemSelector extends MainActivity {
 		int id = item.getItemId();
 		if (id == R.id.action_restart)
 		{
-			myDatabaseAdapter.deleteTMDdatabase();
+			wipeDatabase();
 			startActivity(new Intent(ItemSelector.this, TMDmenu.class));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	public void onAnimationStart(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onAnimationRepeat(Animation animation) {
-		// TODO Auto-generated method stub
-		
 	}
 }

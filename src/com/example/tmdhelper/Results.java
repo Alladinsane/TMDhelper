@@ -2,73 +2,103 @@ package com.example.tmdhelper;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
 public class Results extends MainActivity implements OnClickListener {
 
-	MyDatabaseAdapter myDatabaseAdapter;
-	ArrayList<String> products;
-	ArrayList<String> results= new ArrayList<String>();
-	public static final String TMD_PREFERENCES = "tmdPrefs";
-	SharedPreferences tmdPrefs;
+	ArrayList<String> productsUsedInThisBuild;
+	ArrayList<String> results = new ArrayList<String>();
+	ArrayList<String> allItems;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.results);
-		tmdPrefs = getSharedPreferences(TMD_PREFERENCES, MODE_PRIVATE);
-
+		
+		allItems = getAllItems();
+		loadButtonResources();
+		
+		productsUsedInThisBuild = loadItemArray();
+		processRawData();
+		
+		displayResults();
+	}
+	
+	
+	public ArrayList<String> loadItemArray()
+	{
+		ArrayList<String> brands = getIntent().getStringArrayListExtra("brands");
+		ArrayList<String> itemArray = new ArrayList<String>();
+		//pulls out the name of each item, and adds it to an itemArray
+		for(int i=0; i<brands.size(); i++)
+		{
+			String myBrand = brands.get(i).toString();
+			int id = this.getResources().getIdentifier(myBrand, "array", this.getPackageName());
+			String[] tempArray = getResources().getStringArray(id);
+			for(int j=0; j<tempArray.length; j++)
+			{
+				String temp = tempArray[j].toString();
+				StringTokenizer st = new StringTokenizer(temp);
+				
+				String item = st.nextToken();
+				itemArray.add(item);
+			}
+		}
+		brands.clear();
+		return itemArray;
+	}
+	public void loadButtonResources()
+	{
 		int[] resources = {R.id.start_over, R.id.exit};
 		for (int i=0; i <resources.length; i++)
 		{
 			Button b = (Button)findViewById(resources[i]);
 			b.setOnClickListener(this);
 		}
-		
-		myDatabaseAdapter=new MyDatabaseAdapter(this);
-		
-		products = loadItemArray();//products ArrayList will now contain 
-		//the names of only those products user selected for use in this build
-		processRawData();
 	}
 	public void processRawData()
 	{
-		ArrayList<String> allItems = myDatabaseAdapter.getAllItems();
 		ArrayList<String> itemTallies = new ArrayList<String>();
 		
-		//loop through the list of products, and check it against the user
-		//planogram items to see if it was used in this build. For each
-		//individual item name, count is used to add up how many shelves of that item
-		//exist in this build
-		for(int i=0; i<products.size(); i++)
+		for(int i=0; i<productsUsedInThisBuild.size(); i++)
 		{
-			int count=0;
-			for(int j=0; j<allItems.size(); j++)
-			{
-				if(products.get(i).equals(allItems.get(j)))
-				{
-					count++;
-				}
-			}
+			String itemName = productsUsedInThisBuild.get(i);
+			int count = totalShelvesUsingThisProduct(itemName);
+			
 			if(count == 0)
 			{
 				continue;
 			}
-			String itemName = products.get(i);
+			
 			String item = itemName + " " + count;
 			itemTallies.add(item);
 		}
+		calculateResults(itemTallies);
+		allItems.clear();
+	}
+	public int totalShelvesUsingThisProduct(String thisProduct)
+	{
+		int count = 0;
+		for(int j=0; j<allItems.size(); j++)
+		{
+			String productOnCurrentShelf = allItems.get(j);
+			if(thisProduct.equals(productOnCurrentShelf))
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+	public void calculateResults(ArrayList<String> itemTallies)
+	{
 		for(int i=0; i<itemTallies.size(); i++)
 		{
 			
@@ -81,27 +111,22 @@ public class Results extends MainActivity implements OnClickListener {
 				itemName = st.nextToken();
 				tally = Integer.parseInt(st.nextToken());
 			}
-			int total = calculateCaseCount(itemName, tally);
-			addToList(itemName, total);//calls a method to add the final string to an array
-			//that will be used to create the Results ListView
+			int caseCount = calculateCaseCount(itemName, tally);
+			addToResults(itemName, caseCount);
 		}
-		allItems.clear();//this array is no longer needed and is reset for next build
-		displayResults();//method that creates the ListView
 	}
 	public int calculateCaseCount(String itemName, int shelves)
 	{
 		int totalCases=0;
-		String name;
-		String color;
 		int caseCount=0;
 		int shelfCount=0;	
-		String productData = myDatabaseAdapter.getProductData(itemName);
+		String productData = getProductData(itemName);
 		StringTokenizer st = new StringTokenizer(productData);
 		while(st.hasMoreTokens())
 		{
 			//unpack product data from array 
-			name = st.nextToken();
-			color = st.nextToken();
+			st.nextToken();
+			st.nextToken();
 			caseCount = Integer.parseInt(st.nextToken());
 			shelfCount = Integer.parseInt(st.nextToken());	
 		}
@@ -114,53 +139,23 @@ public class Results extends MainActivity implements OnClickListener {
 		mod = 0;
 		return totalCases;
 	}
-	public ArrayList<String> loadItemArray()
+	public void addToResults(String itemName, int total)
 	{
-		ArrayList<String> brands = getIntent().getStringArrayListExtra("brands");
-		ArrayList<String> itemArray = new ArrayList<String>();
-		//pulls out the name of each item, and adds it to an itemArray
-		for(int i=0; i<brands.size(); i++)
-		{
-			String myBrand = brands.get(i).toString();
-			Log.d("Mine", "myBrand = " +myBrand);
-			//using the product line's name to get the the matching product list from resources
-			int id = this.getResources().getIdentifier(myBrand, "array", this.getPackageName());
-			String[] tempArray = getResources().getStringArray(id);
-			Log.d("Mine", "tempArray = " + tempArray);
-			for(int j=0; j<tempArray.length; j++)
-			{
-				String temp = tempArray[j].toString();
-				Log.d("Mine", "temp = " + temp);
-				StringTokenizer st = new StringTokenizer(temp);
-				
-				String item = st.nextToken();
-				itemArray.add(item);
-			}
-		}
-		brands.clear();
-		return itemArray;
-	}
-	public void addToList(String itemName, int total)
-	{
-		//the name and total count of each item in this build is now used
-		//to create a String which communicates the results to the user
 		String phrase = itemName + ": " + total + " cases.";
 		results.add(phrase);
 	}
+	
 	public void displayResults()
 	{
-		//this method creates the ListView that contains actual results
 		ListView selectItem = (ListView)findViewById(R.id.results_view);
 
-
-		ArrayAdapter adapt = new ArrayAdapter<String>(
+		ArrayAdapter<String> adapt = new ArrayAdapter<String>(
 				this, 
 				android.R.layout.simple_list_item_1,
 				results );
-
 		selectItem.setAdapter(adapt); 
 		selectItem.setItemsCanFocus(false);
-		selectItem.setChoiceMode(ListView.CHOICE_MODE_SINGLE);//allows user to make multiple selections
+		selectItem.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		registerForContextMenu(selectItem);
 		selectItem.setAdapter(adapt);
 
@@ -171,35 +166,27 @@ public class Results extends MainActivity implements OnClickListener {
 		
 		if(index== R.id.start_over)
 		{
-			//make sure all planograms and arrays are cleared and return to main menu
-			myDatabaseAdapter.deleteTMDdatabase();
-			results.clear();
-			products.clear();
-			Intent intent = new Intent(Results.this, TMDmenu.class);
-			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(intent);
-			finish();
+			clearUserData();
+			startOver();
 		}
-		/*decided not to implement exit button at this time
-		 * 
-		 * else if(index== R.id.exit)
-		{
-			myDatabaseAdapter.deleteTMDdatabase();
-			results.clear();
-			products.clear();
-			
-	        Intent intent = new Intent(Intent.ACTION_MAIN); 
-	        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); 
-	        intent.addCategory(Intent.CATEGORY_HOME); 
-	        startActivity(intent);	
-	        finish();
-		}
-		*/
+	}
+	public void clearUserData()
+	{
+		wipeDatabase();
+		results.clear();
+		productsUsedInThisBuild.clear();
+	}
+	public void startOver()
+	{
+		Intent intent = new Intent(Results.this, TMDmenu.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
+		finish();
 	}
 	public void onBackPressed()
 	{
-		
+		tmdPrefs = getMySharedPreferences();
 		int loproTMD=0;
 		if(tmdPrefs.contains("loproTMD"))
 		{
@@ -237,22 +224,11 @@ public class Results extends MainActivity implements OnClickListener {
 		int id = item.getItemId();
 		if (id == R.id.action_restart)
 		{
-			myDatabaseAdapter.deleteTMDdatabase();
+			wipeDatabase();
 			startActivity(new Intent(Results.this, TMDmenu.class));
 			finish();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	public void onAnimationStart(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onAnimationRepeat(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 }

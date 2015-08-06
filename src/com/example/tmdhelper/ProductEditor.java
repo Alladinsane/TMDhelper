@@ -1,11 +1,9 @@
 package com.example.tmdhelper;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.animation.Animation;
-import android.content.SharedPreferences;
+
 //this class will be implemented as part of a feature in a future version
 public class ProductEditor extends MainActivity {
 
@@ -36,15 +34,5 @@ public class ProductEditor extends MainActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	public void onAnimationStart(Animation animation) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onAnimationRepeat(Animation animation) {
-		// TODO Auto-generated method stub
-		
 	}
 }

@@ -18,6 +18,7 @@
         android:textSize="50sp" />
 	
     <ImageView
+        android:contentDescription=""
         android:id="@+id/logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -33,7 +34,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="35dp"
-        android:text="version 1.0"
+        android:text="version 1.1"
         android:textSize="5pt" />
 
     </RelativeLayout>
