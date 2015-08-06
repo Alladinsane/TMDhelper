@@ -19,50 +19,60 @@ import android.widget.TextView;
  * 
  */
 public class FullTMD extends TMDactivity implements OnClickListener{
-	int tmdTotal=0, multiple, loproTMD=0, fullTMD=0, counter=1;
-	final String TMDname="fullTMD";
-	final String TITLE="Full TMD";
+	private int tmdTotal=0, multiple, loproTMD=0, fullTMD=0, counter=1;
+	private final String TMDname="fullTMD";
+	private final String TITLE="Full TMD";
 	ArrayList<String> brands = new ArrayList<String>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.full_tmd);
-		resources = getButtonResources();
+		
 		tmdPrefs = getMySharedPreferences();
 		brands = getIntent().getStringArrayListExtra("brands");
-		myDatabaseAdapter=getDatabaseAdapter();
+
 		initializePlanogram();
 		super.setBrandsArray(brands);
 
-		if(tmdPrefs.contains("fullTMD"))
-		{
-			fullTMD = tmdPrefs.getInt("fullTMD", 0);
-		}
-		if(tmdPrefs.contains("loproTMD"))
-		{
-			loproTMD = tmdPrefs.getInt("loproTMD", 0);
-		}
-		tmdTotal = fullTMD + loproTMD;
+		instantiateInstanceVariables();
+		
 		if(tmdTotal == 1)
 		{
-			Button b = (Button) findViewById(R.id.next_button);
-			b.setText("Finish");
+			setButtonToFinish();
 		}
-		resources = getButtonResources();
-		for (int i=0; i <resources.length; i++)
-		{
-			Button b = (Button)findViewById(resources[i]);
-			b.setOnClickListener(this);
-		}
+		setButtonOnClickListeners();
+		
 		counter=tmdPrefs.getInt("counter", 1);
+		
 		String thisTMD= TMDname + counter;
+		
 		if(planogramExists(thisTMD))
 		{
 			restorePlanogram(thisTMD);
 		}
 		setHeading();
 		setContext(FullTMD.this);
+	}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.planogram, menu);
+		return true;
+	}
+
+	public boolean onOptionsItemSelected(MenuItem item) {
+		int id = item.getItemId();
+		
+		if (id == R.id.action_reset) {
+			initializePlanogram();
+			resetScreen();
+			return true;
+		}
+		else if(id == R.id.action_restart)
+		{
+			showRestartAlertDialog();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 	public void initializePlanogram()
 	{
@@ -78,6 +88,15 @@ public class FullTMD extends TMDactivity implements OnClickListener{
 		int[] resources = {R.id.button1, R.id.button2, R.id.button3, R.id.button4, R.id.button5,
 				R.id.next_button, R.id.checkbox};
 		return resources;
+	}
+	public void setButtonOnClickListeners()
+	{
+		resources = getButtonResources();
+		for (int i=0; i <resources.length; i++)
+		{
+			Button b = (Button)findViewById(resources[i]);
+			b.setOnClickListener(this);
+		}
 	}
 	public int getShelfNumber(Button b)
 	{
@@ -105,14 +124,15 @@ public class FullTMD extends TMDactivity implements OnClickListener{
 	protected void storePlanogram()
 	{
 		String thisTMD = TMDname + counter;
-		storePlanogram(thisTMD, planogram);
+		super.storePlanogram(thisTMD, planogram);
 	}
 	protected void nextButtonAction()
 	{
 		storePlanogram();
+		
 		Button b = getButtonByID(R.id.next_button);
+		
 		counter++;
-		Log.d("Mine", "counter incremented. counter = " +counter);
 		if(!(counter > fullTMD))
 		{
 			String thisTMD= TMDname + counter;
@@ -170,59 +190,51 @@ public class FullTMD extends TMDactivity implements OnClickListener{
 			finish();
 		}
 	}
+	public void instantiateInstanceVariables()
+	{
+		if(tmdPrefs.contains("fullTMD"))
+		{
+			fullTMD = tmdPrefs.getInt("fullTMD", 0);
+		}
+		if(tmdPrefs.contains("loproTMD"))
+		{
+			loproTMD = tmdPrefs.getInt("loproTMD", 0);
+		}
+		tmdTotal = fullTMD + loproTMD;
+	}
 	public void setHeading()
 	{
 		TextView header = (TextView) findViewById(R.id.TMDnumber);
 		String heading = TITLE +" #" +  counter + " of " + fullTMD;
 		header.setText(heading);
 	}
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.planogram, menu);
-		return true;
-	}
+	public void showRestartAlertDialog()
+	{
+		AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+		builder1.setMessage(getResources().getString(R.string.restart_alert_message));
+		builder1.setCancelable(true);
+		builder1.setPositiveButton("OK",
+				new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+				Intent intent = new Intent(FullTMD.this, TMDmenu.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
+				finish();
+			}});
+		builder1.setNegativeButton("Cancel",
+				new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+				return;
+			}
+		});
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_reset) {
-			initializePlanogram();
-			resetScreen();
-			return true;
-		}
-		else if(id == R.id.action_restart)
-		{
-			myDatabaseAdapter.deleteTMDdatabase();
-			AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-			builder1.setMessage(getResources().getString(R.string.restart_alert_message));
-			builder1.setCancelable(true);
-			builder1.setPositiveButton("OK",
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-					Intent intent = new Intent(FullTMD.this, TMDmenu.class);
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					startActivity(intent);
-					finish();
-				}});
-			builder1.setNegativeButton("Cancel",
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-					return;
-				}
-			});
-
-			AlertDialog alert11 = builder1.create();
-			alert11.show();
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
+		AlertDialog alert11 = builder1.create();
+		alert11.show();
 	}
+	
 public Context getContext()
 {
 	return FullTMD.this;
@@ -232,6 +244,8 @@ public void executeMultipleTMDs(int multiple)
 	this.multiple = multiple;
 	new MultipleTMD().execute();
 }
+
+
 private class MultipleTMD extends AsyncTask <Void, Void, String>
 {
 	private ProgressDialog dialog;

@@ -12,15 +12,12 @@ import android.widget.TextView;
 
 public class TMDmenu extends MainActivity {
 	
-	MyDatabaseAdapter myDatabaseAdapter;
-	
-
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.menu);
 
 		hideActionBar();
-		myDatabaseAdapter = getDatabaseAdapter();
+
 		wipeDatabase();
 
 		ListView menuList = (ListView) findViewById(R.id.menu_list);

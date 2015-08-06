@@ -84,7 +84,7 @@ public class DisplaySize extends MainActivity implements OnClickListener{
 			loproTMD = getThisInput(loproInput);
 
 		if(userMakesNoSelections())
-			showBuildMustContainBrandToast();
+			showBuildMustContainTMDsToast();
 		else
 			storeDataInSharedPreferences();
 	}
@@ -107,7 +107,7 @@ public class DisplaySize extends MainActivity implements OnClickListener{
 		else
 			return false;
 	}
-	public void showBuildMustContainBrandToast()
+	public void showBuildMustContainTMDsToast()
 	{
 		Context context = getApplicationContext();
 		CharSequence text = "Build must contain at least one TMD.";

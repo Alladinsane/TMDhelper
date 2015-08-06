@@ -19,19 +19,18 @@ import android.widget.TextView;
  * 
  */
 public class LoproTMD extends TMDactivity implements OnClickListener{
-	int tmdTotal=0, multiple, loproTMD=0, fullTMD=0;
-	public String TMDname="loproTMD";
-	final String TITLE="Low Profile";
-	ArrayList<String> brands = new ArrayList<String>();
-	int counter;
+	private int tmdTotal=0, multiple, loproTMD=0, fullTMD=0;
+	private String TMDname="loproTMD";
+	private final String TITLE="Low Profile";
+	private int counter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.lopro_tmd);
-		resources = getButtonResources();
 		tmdPrefs = getMySharedPreferences();
 		brands = getIntent().getStringArrayListExtra("brands");
+		
 		initializePlanogram();
 		setBrandsArray(brands);
 		
@@ -41,14 +40,12 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		{
 			setButtonToFinish();
 		}
-		resources = getButtonResources();
-		for (int i=0; i <resources.length; i++)
-		{
-			Button b = (Button)findViewById(resources[i]);
-			b.setOnClickListener(this);
-		}
+		setButtonOnClickListeners();
+		
 		counter=tmdPrefs.getInt("counter", 1);
+		
 		String thisTMD = TMDname + counter;
+		
 		if(planogramExists(thisTMD))
 		{
 			restorePlanogram(thisTMD);
@@ -56,6 +53,32 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		setHeading();
 		setContext(LoproTMD.this);
 	}
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.planogram, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_reset) {
+			initializePlanogram();
+			resetScreen();
+			return true;
+		}
+		else if(id == R.id.action_restart)
+		{
+			showRestartAlertDialog();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	
 	public void initializePlanogram()
 	{
 		planogram = new String[5];
@@ -75,6 +98,15 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		int[] resources = {R.id.button1, R.id.button2, R.id.button3, R.id.button4,
 				R.id.next_button, R.id.checkbox};
 		return resources;
+	}
+	public void setButtonOnClickListeners()
+	{
+		resources = getButtonResources();
+		for (int i=0; i <resources.length; i++)
+		{
+			Button b = (Button)findViewById(resources[i]);
+			b.setOnClickListener(this);
+		}
 	}
 	public int getShelfNumber(Button b)
 	{
@@ -99,7 +131,7 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 	protected void storePlanogram()
 	{
 		String thisTMD = TMDname + counter;
-		storePlanogram(thisTMD, planogram);
+		super.storePlanogram(thisTMD, planogram);
 	}
 	public void setHeading(int number)
 	{
@@ -110,7 +142,9 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 	protected void nextButtonAction()
 	{
 		storePlanogram();
+		
 		Button b = getButtonByID(R.id.next_button);
+		
 		counter++;
 		if(!(counter > loproTMD))
 		{
@@ -132,6 +166,7 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		}
 		else
 		{
+			ArrayList<String> brands = getIntent().getStringArrayListExtra("brands");
 			storePlanogram();
 			Intent intent = new Intent(LoproTMD.this, Results.class);
 			intent.putExtra("brands", brands);
@@ -142,6 +177,7 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 	public void onBackPressed() {
 		counter--;
 		String thisTMD = TMDname + counter;
+		
 		if(counter>0)
 		{
 			restorePlanogram(thisTMD);
@@ -165,53 +201,7 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 			}
 		}
 	}
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.planogram, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_reset) {
-			initializePlanogram();
-			resetScreen();
-			return true;
-		}
-		else if(id == R.id.action_restart)
-		{
-			wipeDatabase();
-			AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-			builder1.setMessage(getResources().getString(R.string.restart_alert_message));
-			builder1.setCancelable(true);
-			builder1.setPositiveButton("OK",
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-					Intent intent = new Intent(LoproTMD.this, TMDmenu.class);
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					startActivity(intent);
-					finish();
-				}});
-			builder1.setNegativeButton("Cancel",
-					new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-					return;
-				}
-			});
-
-			AlertDialog alert11 = builder1.create();
-			alert11.show();
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+	
 	public void instantiateInstanceVariables()
 	{
 		if(tmdPrefs.contains("loproTMD"))
@@ -226,6 +216,36 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		String heading = TITLE +" #" +  counter + " of " + loproTMD;
 		header.setText(heading);
 	}
+	public void showRestartAlertDialog()
+	{
+		AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+		builder1.setMessage(getResources().getString(R.string.restart_alert_message));
+		builder1.setCancelable(true);
+		builder1.setPositiveButton("OK",
+				new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+				Intent intent = new Intent(LoproTMD.this, TMDmenu.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
+				finish();
+			}});
+		builder1.setNegativeButton("Cancel",
+				new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+				return;
+			}
+		});
+
+		AlertDialog alert11 = builder1.create();
+		alert11.show();
+	}
+	public int getMaxValue()
+	{
+		return ((loproTMD-counter)+1);
+	}
 	public Context getContext()
 	{
 		return LoproTMD.this;
@@ -235,6 +255,8 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 		this.multiple = multiple;
 		new MultipleTMD().execute();
 	}
+	
+	
 	private class MultipleTMD extends AsyncTask <Void, Void, String>
 	{
 		private ProgressDialog dialog;
@@ -269,8 +291,5 @@ public class LoproTMD extends TMDactivity implements OnClickListener{
 			dialog.dismiss();
 		}
 	}
-	public int getMaxValue()
-	{
-		return ((loproTMD-counter)+1);
-	}
+	
 }

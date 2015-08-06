@@ -30,7 +30,7 @@ abstract class TMDactivity extends MainActivity implements OnClickListener{
 		
 	}
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
+		//returning from NumberPickerActivity
 		if (requestCode == MAKE_PRODUCT_SELECTION) {
 			if(resultCode == RESULT_OK){
 				String result=data.getStringExtra("result");
